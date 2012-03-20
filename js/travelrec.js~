@@ -74,10 +74,12 @@ function loadPlaceslist(offset, limit) {
           Math.sin(dLon/2) * Math.sin(dLon/2);
   			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   			var d = R * c;
+  			console.log(d);
   			if (d < 20) {  			
 	      	var newfav = new favlocations(place.me, place._id, place.network, place.path, place.lat, place.lng, place.title, place.from, place.at, d, place.via);
    	   	placelist[maxIndex]=newfav;
    	   	++maxIndex;
+   	   	console.log(maxIndex);
    		}
 		}
 		placelist.sort(function(a,b){
