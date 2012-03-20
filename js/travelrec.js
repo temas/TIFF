@@ -5,7 +5,7 @@ window.onload = loadScript;
 var markers = [];
 var map;
 var geocoder;
-var markerLat = 37.424;
+var markerLat = 38.424;
 var markerLng = -122.222;	
 
 function getLatestPlace() {

@@ -32,6 +32,7 @@ function initializeMap(place) {
 	 geocoder = new google.maps.Geocoder();
     map = new google.maps.Map(document.getElementById('mapcanvas'), myOptions);
     addMarker(markerLat, markerLng, myTitle, mySource, true);
+	console.log("test");	
 	loadPlaceslist(0, 100000);
 }
 
