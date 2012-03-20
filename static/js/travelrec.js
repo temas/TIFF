@@ -1,0 +1,203 @@
+/* Generic log function for debugging. */
+var log = function(msg) { if (console && console.log) console.debug(msg); };
+window.onload = loadScript;
+
+var markers = [];
+var map;
+var geocoder;
+var markerLat = 37.424;
+var markerLng = -122.222;	
+
+function getLatestPlace() {
+    $.getJSON(
+        '/Me/places',
+        {'offset':0, 'limit':1, 'sort': 'at', 'order': -1},     
+        initializeMap
+    );
+}
+
+function initializeMap(place) {
+	clearOverlays(); 	
+ 	marker = new google.maps.Marker({
+   	map: map,
+  		draggable: true,
+  	});
+    var mySource = undefined;
+    var myTitle = "PivotNorth Capital";
+    var myOptions = {
+        zoom: 12,
+        center: new google.maps.LatLng(markerLat, markerLng),
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+	 geocoder = new google.maps.Geocoder();
+    map = new google.maps.Map(document.getElementById('mapcanvas'), myOptions);
+    addMarker(markerLat, markerLng, myTitle, mySource, true);
+	loadPlaceslist(0, 1000);
+}
+
+
+function loadPlaceslist(offset, limit) {
+    // set the params if not specified
+ 
+    var offset = offset || 0;
+    var limit = limit || 100;
+    var useJSON = useJSON || false;
+    
+    var getPlacesCB = function(places) {
+      // find the unordered list in our document to append to
+    	var placelist = new Array(places.length);	 
+	 	var myLat = markerLat;
+    	var myLng = markerLng; 
+    	var $placeslist = $("#placeslist");
+    	$placeslist.html('');      
+    	if (places.length === 0) $placeslist.append("<li>Sorry, no places found!</li>");
+    	for (var i in places) {
+	    	place = places[i];
+   	   if (place.network === 'foursquare' && place.from === 'Me') {
+      		// places collection adds two records for your checkin, in checkins and in recents.  This filters out the former.
+         	continue;
+      	}
+ 	     var atSeparator = ' @ ';
+   	   if (place.network === 'glatitude' || !place.title) {
+      		var atSeparator = '';
+	      }
+   	   var R = 3961; // radius of the earth in miles
+			
+  			var lat1 = myLat.toRad(), lon1 = myLng.toRad();
+  			var lat2 = place.lat.toRad(), lon2 = place.lng.toRad();
+  			var dLat = lat2 - lat1;
+  			var dLon = lon2 - lon1;
+
+  			var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat1) * Math.cos(lat2) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+  			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  			var d = R * c;  			
+	      var newfav = new favlocations(place.me, place._id, place.network, place.path, place.lat, place.lng, place.title, place.from, place.at, d, place.via);
+   	   placelist[i]=newfav;
+		}
+		placelist.sort(function(a,b){
+			return a.distance - b.distance;
+			})
+
+		for (var i in placelist) {
+			place = placelist[i]
+			$placeslist.append('<li class="place"><a class="placelink" href="' + place.via + '" data-id="' + place.id + '" data-me="' + place.me +
+      		'" data-network="' + place.network + '" data-path="' + place.path + '" data-lat="' + place.lat +
+  	      	'" data-lng="' + place.lng + '" data-title="' + place.title + '"><div class="filler"><img class="network" src="/Me/alanellingson-travelrecommendations/static/img/' +
+	         place.network + '.png" /><div class="title">' + place.title + '</div><div class="date">' + place.distance.toFixed(2) + ' miles - ' + place.from +
+	         ' (' + moment(place.at).format('MM/YY') + ')</div></div></a></li>');
+	      addMarker(place.lat, place.lng, place.title, place.network, false);
+	  }
+	};
+    
+	
+   $.getJSON(
+   	'/Me/places',
+      {'offset':offset, 'limit':limit, 'sort': 'at', 'order': -1},
+      getPlacesCB
+    );
+}
+
+function favlocations (me, id, network, path, lat, lng, title, from, at, distance, via) {
+	this.me = me;	
+	this.id = id;
+	this.network = network;
+	this.path = path;
+	this.lat = lat;
+	this.lng = lng;
+	this.title = title
+	this.from = from;
+	this.at = at;
+	this.distance = distance;
+	this.via = via;
+}
+    
+function addMarker(lat, lng, title, network, isdraggable) {
+    var markerObj = {
+                    position: new google.maps.LatLng(lat, lng),
+                    map: map,
+                    draggable: isdraggable,
+                    animation: google.maps.Animation.DROP,
+                    title:title
+                 };
+    if (network !== undefined) {
+     markerObj.icon = '/Me/alanellingson-travelrecommendations/static/img/' + network + '.png';
+    }
+
+    var marker = new google.maps.Marker(markerObj);
+    markers.push(marker);
+}
+
+function clearOverlays() {
+  if (markers) {
+    for (var i in markers) {
+      markers[i].setMap(null);
+    }
+    markers.length = 0;
+  }
+}
+
+
+function loadScript() {
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://maps.googleapis.com/maps/api/js?sensor=false&callback=getLatestPlace';
+    document.body.appendChild(script);
+}
+
+
+$(function() {
+    loadPlaceslist(0, 1000); // get infinite scroll working here
+
+    $(".placelink").live('click', function(e) {
+        e.preventDefault();
+        // clearOverlays();
+        var lat = $(this).attr('data-lat');
+        var lng = $(this).attr('data-lng');
+        addMarker(lat, lng, $(this).attr('data-title'), $(this).attr('data-network'), false);
+        map.panTo(new google.maps.LatLng(lat, lng));
+        //console.log(lat);
+        //console.log(lng);
+    });
+});
+$(function() {
+    $("#address").autocomplete({
+      //This bit uses the geocoder to fetch address values
+      source: function(request, response) {
+        geocoder.geocode( {'address': request.term }, function(results, status) {
+          response($.map(results, function(item) {
+            return {
+              label:  item.formatted_address,
+              value: item.formatted_address,
+              latitude: item.geometry.location.lat(),
+              longitude: item.geometry.location.lng()
+            }
+          }));
+        })
+      },
+      //This bit is executed upon selection of an address
+      select: function(event, ui) {
+        $("#latitude").val(ui.item.latitude);
+        $("#longitude").val(ui.item.longitude);
+		  clearOverlays();       
+        var location = new google.maps.LatLng(ui.item.latitude, ui.item.longitude);
+		  markerLat = ui.item.latitude;
+		  markerLng = ui.item.longitude;		  
+		  addMarker(ui.item.latitude, ui.item.longitude, "", undefined, true);        
+        //marker.setPosition(location);
+        map.setCenter(location);
+        loadPlaceslist(0, 1000);
+      }
+    });
+  });
+ 
+ 
+ 
+ /** Converts numeric degrees to radians */
+if (typeof(Number.prototype.toRad) === "undefined") {
+  Number.prototype.toRad = function() {
+    return this * Math.PI / 180;
+  }
+}
+      

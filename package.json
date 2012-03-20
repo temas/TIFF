@@ -1,0 +1,32 @@
+{
+  "author": "Alan Ellingson",
+  "name": "TIFF - Travel Ideas From Friends",
+  "description": "Find hang-out spots based on the experiences of your friends.",
+  "version": "0.0.6",
+  "homepage": "https://github.com/AlanEllingson/TravelRecommendations",
+  "repository": {
+    "type": "app",
+    "title": "TIFF",
+    "status": "alpha",
+    "static": true,
+    "handle": "tiff",
+    "uses": {
+      "services": [
+        "instagram", 
+        "twitter",       
+        "foursquare"
+      ],
+      "types": [
+        "places"
+      ]
+    },
+    "update": true,
+    "github": "https://github.com/AlanEllingson/TIFF",
+    "url": ""
+  },
+  "engines": {
+    "node": ">=0.4.9"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
