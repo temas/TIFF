@@ -6,7 +6,7 @@
   "homepage": "https://github.com/AlanEllingson/TIFF",
   "repository": {
     "type": "app",
-    "title": "TIFF",
+    "title": "TIFF - Travel Ideas From Friends",
     "status": "alpha",
     "static": true,
     "handle": "tiff",

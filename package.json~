@@ -3,7 +3,7 @@
   "name": "TIFF - Travel Ideas From Friends",
   "description": "Find hang-out spots based on the experiences of your friends.",
   "version": "0.0.6",
-  "homepage": "https://github.com/AlanEllingson/TravelRecommendations",
+  "homepage": "https://github.com/AlanEllingson/TIFF",
   "repository": {
     "type": "app",
     "title": "TIFF",
